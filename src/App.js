@@ -1,4 +1,15 @@
+// First, install react-router-dom:
+// npm install react-router-dom
+
 import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import "./App.css";
 import Navigation from "./components/Navbar";
 import BottomNavigation from "./components/BottomNavbar";
 import Dashboard from "./components/Dashboard";
@@ -7,10 +18,28 @@ import StepsPage from "./components/StepsPage";
 import MedicinePage from "./components/MedicinePage";
 import MilestonesPage from "./components/MilestonesPage";
 import RewardsPage from "./components/RewardPage";
+import SettingsPage from "./components/SettingsPage";
 import { API } from "./services/api";
 
-export default function HealthTracker() {
-  const [currentPage, setCurrentPage] = useState("dashboard");
+// Main App component that handles routing, feel free to adjust as needed
+function App() {
+  return (
+    <Router>
+      <HealthTracker />
+    </Router>
+  );
+}
+
+function HealthTracker() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get current page from URL path
+  const getCurrentPage = () => {
+    const path = location.pathname.slice(1); // This removes the leading slash
+    return path || "dashboard"; // Defaults to dashboard
+  };
+
   const [heartRate, setHeartRate] = useState(72);
   const [steps, setSteps] = useState(5420);
   const [medicines, setMedicines] = useState([]);
@@ -130,62 +159,76 @@ export default function HealthTracker() {
     }
   };
 
+  // Navigation handler
+  const handleNavigation = (page) => {
+    navigate(`/${page === "dashboard" ? "" : page}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       {/* Top Navigation */}
       <Navigation
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        currentPage={getCurrentPage()}
+        setCurrentPage={handleNavigation}
         totalPoints={totalPoints}
       />
 
-      {/* Main Content */}
+      {/* Main Content with Routes */}
       <main className="py-6">
-        {currentPage === "dashboard" && (
-          <Dashboard
-            heartRate={heartRate}
-            steps={steps}
-            medicines={medicines}
-            milestones={milestones}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Dashboard
+                heartRate={heartRate}
+                steps={steps}
+                medicines={medicines}
+                milestones={milestones}
+              />
+            }
           />
-        )}
-
-        {currentPage === "heart" && <HeartRatePage heartRate={heartRate} />}
-
-        {currentPage === "steps" && <StepsPage steps={steps} />}
-
-        {currentPage === "medicine" && (
-          <MedicinePage
-            medicines={medicines}
-            toggleMedicine={toggleMedicine}
-            addMedicine={addMedicine}
+          <Route
+            path="/heart"
+            element={<HeartRatePage heartRate={heartRate} />}
           />
-        )}
-
-        {currentPage === "milestones" && (
-          <MilestonesPage
-            milestones={milestones}
-            totalPoints={totalPoints}
-            completeMilestone={completeMilestone}
+          <Route path="/steps" element={<StepsPage steps={steps} />} />
+          <Route
+            path="/medicine"
+            element={
+              <MedicinePage
+                medicines={medicines}
+                toggleMedicine={toggleMedicine}
+                addMedicine={addMedicine}
+              />
+            }
           />
-        )}
-
-        {currentPage === "rewards" && (
-          <RewardsPage milestones={milestones} totalPoints={totalPoints} />
-        )}
+          <Route
+            path="/milestones"
+            element={
+              <MilestonesPage
+                milestones={milestones}
+                totalPoints={totalPoints}
+                completeMilestone={completeMilestone}
+              />
+            }
+          />
+          <Route
+            path="/rewards"
+            element={
+              <RewardsPage milestones={milestones} totalPoints={totalPoints} />
+            }
+          />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Routes>
       </main>
 
       {/* Bottom Navigation */}
       <BottomNavigation
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        currentPage={getCurrentPage()}
+        setCurrentPage={handleNavigation}
       />
     </div>
   );
 }
 
-// This is the main entry point for the Health Tracker web application
-// It initializes the app, sets up state management, and handles data fetching
-// It also manages navigation between different "pages" of the app, for now its not actually separate pages
-// The app includes features for tracking heart rate, steps, medicines, milestones, and rewards
-// NB: I couldn't seperate the components into different pages yet
+export default App;
