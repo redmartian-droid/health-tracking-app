@@ -1,14 +1,40 @@
-import React, { useState } from "react";
-import { Heart, Activity, Pill, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Activity, Pill, Check, Heart } from "lucide-react";
+
+import { Heart as HeartBeat } from "lucide-react";
+
 import MetricCard from "./MetricCard";
+import HeartRateMetricCard from "./HeartRateMetricCard";
 import HeartRatePage from "./HeartRatePage";
 import StepsPage from "./StepsPage";
 import MedicinePage from "./MedicinePage";
 import MilestonesPage from "./MilestonesPage";
+// import { EKGMonitor } from ".";
 
 export default function Dashboard({ heartRate, steps, medicines, milestones }) {
   const [activeTab, setActiveTab] = useState("dashboard");
 
+  // const [setEKGMonitorAvailability] = useState("");
+  // const [heartBeat, updateHeartRate] = useState(0);
+
+  //  useEffect(() => {
+  //    subscribe();
+  //  });
+
+  //const subscribe = () => {
+  //  EKGMonitor.watchHeartBeat((result) => {
+  //    updateHeartRate(result.steps);
+  //  });
+
+  // EKGMonitor.isAvailableAsync().then(
+  //   (result) => {
+  //    setEKGMonitorAvailability(String(result));
+  //  },
+  //  (error) => {
+  //    setEKGMonitorAvailability(error);
+  //  }
+  //  );
+  // };
   const renderTabContent = () => {
     switch (activeTab) {
       case "heart-rate":
@@ -27,11 +53,8 @@ export default function Dashboard({ heartRate, steps, medicines, milestones }) {
   const renderDashboard = () => (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div
-          onClick={() => setActiveTab("heart-rate")}
-          className="cursor-pointer hover:bg-gray-50 transition-colors"
-        >
-          <MetricCard
+        <div onClick={() => setActiveTab("heart-rate")}>
+          <HeartRateMetricCard
             title="Heart Rate"
             value={heartRate}
             unit="BPM"
@@ -40,23 +63,17 @@ export default function Dashboard({ heartRate, steps, medicines, milestones }) {
           />
         </div>
 
-        <div
-          onClick={() => setActiveTab("steps")}
-          className="cursor-pointer hover:bg-gray-50 transition-colors"
-        >
+        <div onClick={() => setActiveTab("steps")}>
           <MetricCard
             title="Steps Today"
-            value={steps.toLocaleString()}
+            //  value={heartBeat}
             unit="steps"
             icon={Activity}
             trend={15}
           />
         </div>
 
-        <div
-          onClick={() => setActiveTab("medicines")}
-          className="cursor-pointer hover:bg-gray-50 transition-colors"
-        >
+        <div onClick={() => setActiveTab("medicines")}>
           <MetricCard
             title="Medicines Today"
             value={medicines.reduce(

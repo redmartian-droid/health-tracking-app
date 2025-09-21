@@ -44,7 +44,8 @@ export default function MedicinePage({
         <h2 className="text-3xl font-bold">Medicine Tracker</h2>
         <button
           onClick={() => setShowAddForm(true)}
-          className="bg-gray-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+          className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
+          style={{ borderBottomColor: " #16A34A" }}
         >
           <Plus className="w-4 h-4" />
           Add Medicine
@@ -98,7 +99,8 @@ export default function MedicinePage({
               <button
                 type="button"
                 onClick={addTimeSlot}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
+                style={{ borderBottomColor: " #16A34A" }}
               >
                 + Add another time
               </button>
@@ -107,14 +109,16 @@ export default function MedicinePage({
               <button
                 type="button"
                 onClick={handleAddMedicine}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
+                style={{ borderBottomColor: " #16A34A" }}
               >
                 Add Medicine
               </button>
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                className="bg-gray-400 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-500 transition-colors"
+                style={{ borderBottomColor: " #6B7280" }}
               >
                 Cancel
               </button>

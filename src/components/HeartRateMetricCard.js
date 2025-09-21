@@ -1,4 +1,4 @@
-export default function MetricCard({
+export default function HeartRateMetricCard({
   title,
   value,
   unit,
@@ -7,7 +7,8 @@ export default function MetricCard({
   trend,
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border-gray-800">
+    <div className="p-3 rounded-full">
+      <Icon className="w-64 h-64" style={{ color }} />
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-600 text-sm font-medium">{title}</p>
@@ -24,13 +25,6 @@ export default function MetricCard({
             </p>
           )}
         </div>{" "}
-        {/* Icon with colored background */}
-        <div
-          className="p-3 rounded-full"
-          style={{ backgroundColor: color + "20" }}
-        >
-          <Icon className="w-8 h-8" style={{ color }} />
-        </div>
       </div>
     </div>
   );

@@ -10,15 +10,15 @@ export default function Navigation({ totalPoints }) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-semibold text-green-800 tracking-tight">
               Medicon
             </h1>
           </div>
 
           {/* Desktop Points - hidden on mobile */}
           <div className="hidden lg:flex items-center">
-            <div className="flex items-center gap-2 text-black px-4 py-2 rounded-full text-sm font-medium">
-              <Trophy className="w-4 h-4 text-black-400" />
+            <div className="flex items-center gap-2 text-black px-4 py-2 rounded-full text-sm font-medium bg-gray-200">
+              🏆
               <span>{totalPoints} pts</span>
             </div>
           </div>

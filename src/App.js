@@ -1,5 +1,9 @@
 // First, install react-router-dom:
 // npm install react-router-dom
+// npm install firebase
+// npm install react-firebase-hooks
+
+// import necessary modules and components
 
 import React, { useState, useEffect } from "react";
 import {
@@ -9,6 +13,12 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
+
+// /import { useAuthState } from "react-firebase-hooks/auth";
+//import { auth } from "./firebase/config";
+//import SignIn from "./components/SignIn";
+//import SignUp from "./components/SignUp";
+
 import "./App.css";
 import Navigation from "./components/Navbar";
 import BottomNavigation from "./components/BottomNavbar";
@@ -21,7 +31,7 @@ import RewardsPage from "./components/RewardPage";
 import SettingsPage from "./components/SettingsPage";
 import { API } from "./services/api";
 
-// Main App component that handles routing, feel free to adjust as needed
+// Main App component that handles routing, feel free to adjust as needed (AuthWrapper serves as entry point for auth logic)
 function App() {
   return (
     <Router>
@@ -30,17 +40,53 @@ function App() {
   );
 }
 
+// function AuthWrapper() {
+// const [user, error] = useAuthState(auth);
+
+//if (error) {
+//console.error("Authentication error:", error);
+//return (
+// <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+// <div className="text-center">
+//   <h2 className="text-xl mb-4">Authentication Error</h2>
+//   <p>{error.message}</p>
+// </div>
+// </div>
+// );
+// }
+
+// If user is not authenticated, show auth routes
+//if (!user) {
+//   return <AuthRoutes />;
+// }
+
+// If user is authenticated, show the health tracker app
+//  return <HealthTracker />;
+// }
+
+//function AuthRoutes() {
+//  return (
+//    <div className="min-h-screen bg-gray-900">
+//      <Routes>
+//        <Route path="/signup" element={<SignUp />} />
+//        <Route path="*" element={<SignIn />} />
+//      </Routes>
+//    </div>
+//  );
+//}
+
 function HealthTracker() {
   const navigate = useNavigate();
   const location = useLocation();
 
   // Get current page from URL path
   const getCurrentPage = () => {
-    const path = location.pathname.slice(1); // This removes the leading slash
+    const path = location.pathname.slice(1); // This removes the leading slash, dynamic routing is a bit weird
     return path || "dashboard"; // Defaults to dashboard
   };
 
   const [heartRate, setHeartRate] = useState(72);
+
   const [steps, setSteps] = useState(5420);
   const [medicines, setMedicines] = useState([]);
   const [milestones, setMilestones] = useState([
@@ -165,7 +211,7 @@ function HealthTracker() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-green-50 pb-16">
       {/* Top Navigation */}
       <Navigation
         currentPage={getCurrentPage()}

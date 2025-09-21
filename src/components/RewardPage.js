@@ -51,9 +51,7 @@ export default function RewardsPage({ milestones, totalPoints }) {
                 key={milestone.id}
                 className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border"
               >
-                <div className="p-3 bg-gray-200 rounded-full">
-                  <Trophy className="w-6 h-6" />
-                </div>
+                <div className="p-3 bg-gray-200 rounded-full">🏆</div>
                 <div className="flex-1">
                   <h4 className="font-bold">{milestone.title}</h4>
                   <p className="text-sm text-gray-600 mb-1">

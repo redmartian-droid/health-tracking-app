@@ -1,9 +1,9 @@
-import { Home, Goal, Award, Pill, Settings } from "lucide-react";
+import { Home, Dumbbell, Award, Pill, Settings } from "lucide-react";
 
 // Import filled versions (assuming they exist in lucide-react)
 import {
   Home as HomeFilled,
-  Goal as GoalFilled,
+  Dumbbell as DumbbellFilled,
   Award as AwardFilled,
   Pill as PillFilled,
   Settings as SettingsFilled,
@@ -13,13 +13,13 @@ export default function BottomNavigation({ currentPage, setCurrentPage }) {
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, activeIcon: HomeFilled },
     {
-      id: "milestones", // This will show MilestonesPage
+      id: "milestones",
       label: "Goals",
-      icon: Goal,
-      activeIcon: GoalFilled,
+      icon: Dumbbell,
+      activeIcon: DumbbellFilled,
     },
     {
-      id: "rewards", // This will show RewardPage
+      id: "rewards",
       label: "Rewards",
       icon: Award,
       activeIcon: AwardFilled,
@@ -42,7 +42,7 @@ export default function BottomNavigation({ currentPage, setCurrentPage }) {
               key={id}
               onClick={() => setCurrentPage(id)}
               className={`relative flex flex-col items-center py-3 px-2 w-full text-xs font-medium ${
-                currentPage === id ? "text-black" : "text-gray-500"
+                currentPage === id ? "text-green-600" : "text-gray-500"
               }`}
             >
               {currentPage === id ? (
@@ -50,7 +50,7 @@ export default function BottomNavigation({ currentPage, setCurrentPage }) {
               ) : (
                 <Icon className="w-6 h-6 mb-1" />
               )}
-              <span>{label}</span>
+              <span className>{label}</span>
             </button>
           )
         )}
