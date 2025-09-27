@@ -14,10 +14,10 @@ import {
   useLocation,
 } from "react-router-dom";
 
-// /import { useAuthState } from "react-firebase-hooks/auth";
-//import { auth } from "./firebase/config";
-//import SignIn from "./components/SignIn";
-//import SignUp from "./components/SignUp";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "./firebase/config";
+import SignIn from "./components/SignIn";
+import SignUp from "./components/SignUp";
 
 import "./App.css";
 import Navigation from "./components/Navbar";
@@ -31,49 +31,61 @@ import RewardsPage from "./components/RewardPage";
 import SettingsPage from "./components/SettingsPage";
 import { API } from "./services/api";
 
-// Main App component that handles routing, feel free to adjust as needed (AuthWrapper serves as entry point for auth logic)
+import { LoaderCircle } from "lucide-react";
+
+// this specific component handles routing so no need for dedicated routing in each component
+// AuthWrapper component checks auth state and conditionally renders routes
 function App() {
   return (
     <Router>
-      <HealthTracker />
+      <AuthWrapper />
     </Router>
   );
 }
 
-// function AuthWrapper() {
-// const [user, error] = useAuthState(auth);
+function AuthWrapper() {
+  const [user, loading, error] = useAuthState(auth);
 
-//if (error) {
-//console.error("Authentication error:", error);
-//return (
-// <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-// <div className="text-center">
-//   <h2 className="text-xl mb-4">Authentication Error</h2>
-//   <p>{error.message}</p>
-// </div>
-// </div>
-// );
-// }
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-green-50 text-gray-800">
+        <div className="text-center">
+          <LoaderCircle className="animate-spin rounded-full h-32 w-32 text-green-500" />
+          <p className="mt-4">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-// If user is not authenticated, show auth routes
-//if (!user) {
-//   return <AuthRoutes />;
-// }
+  if (error) {
+    console.error("Authentication error:", error);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-green-50 text-red-500">
+        <div className="text-center">
+          <h2 className="text-xl mb-4">Authentication Error</h2>
+          <p>{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
-// If user is authenticated, show the health tracker app
-//  return <HealthTracker />;
-// }
+  if (!user) {
+    return <AuthRoutes />;
+  }
 
-//function AuthRoutes() {
-//  return (
-//    <div className="min-h-screen bg-gray-900">
-//      <Routes>
-//        <Route path="/signup" element={<SignUp />} />
-//        <Route path="*" element={<SignIn />} />
-//      </Routes>
-//    </div>
-//  );
-//}
+  return <HealthTracker />;
+}
+
+function AuthRoutes() {
+  return (
+    <div className="min-h-screen bg-gray-900">
+      <Routes>
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="*" element={<SignIn />} />
+      </Routes>
+    </div>
+  );
+}
 
 function HealthTracker() {
   const navigate = useNavigate();

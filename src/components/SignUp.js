@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
-import { auth } from "../firebase/config";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase/config";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [createUserWithEmailAndPassword, user, loading, error] =
+  const [createUserWithEmailAndPassword] =
     useCreateUserWithEmailAndPassword(auth);
   const navigate = useNavigate();
 
@@ -14,41 +14,48 @@ const SignUp = () => {
     try {
       const res = await createUserWithEmailAndPassword(email, password);
       console.log({ res });
-      sessionStorage.setItem("user", "true");
       setEmail("");
       setPassword("");
-      navigate("/");
+      // Navigation seems to be handled by the AuthWrapper component unlike in next.js router
     } catch (e) {
       console.error(e);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-gray-800 p-10 rounded-lg shadow-xl w-96">
-        <h1 className="text-white text-2xl mb-5">Sign Up</h1>
+    <div className="min-h-screen flex items-center justify-center bg-green-50">
+      <div className="p-10  w-96">
+        <h1 className="text-green-800 text-2xl mb-5">Sign Up</h1>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+          className="w-full p-3 mb-4 bg-white rounded outline-none text-white placeholder-gray-500"
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-700 rounded outline-none text-white placeholder-gray-500"
+          className="w-full p-3 mb-4 bg-white rounded outline-none text-white placeholder-gray-500"
         />
         <button
           onClick={handleSignUp}
-          disabled={loading}
-          className="w-full p-3 bg-indigo-600 rounded text-white hover:bg-indigo-500 disabled:opacity-50"
+          className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
+          style={{ borderBottomColor: " #16A34A" }}
         >
-          {loading ? "Creating Account..." : "Sign Up"}
+          Sign Up
         </button>
-        {error && <p className="text-red-500 mt-2">{error.message}</p>}
+        <p className="text-gray-400 text-center mt-4">
+          Already have an account?{" "}
+          <button
+            onClick={() => navigate("/")}
+            className="text-green-500 hover:text-green-800"
+          >
+            Sign In
+          </button>
+        </p>
       </div>
     </div>
   );
