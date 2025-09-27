@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { User, Bell, Download, Trash2, Save, Shield } from "lucide-react";
+// import { auth, db } from "../firebase/config";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
