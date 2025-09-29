@@ -90,7 +90,7 @@ export default function Dashboard({ heartRate, steps, medicines, milestones }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div
           onClick={() => setActiveTab("milestones")}
-          className="bg-white rounded-lg border p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="bg-white rounded-xl shadow-lg p-6 border-gray-800 hover:bg-gray-50 transition-colors"
         >
           <h3 className="text-lg font-bold mb-4">Recent Milestones</h3>
           {milestones
@@ -114,7 +114,7 @@ export default function Dashboard({ heartRate, steps, medicines, milestones }) {
 
         <div
           onClick={() => setActiveTab("medicines")}
-          className="bg-white rounded-lg border p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="bg-white rounded-xl shadow-lg p-6 border-gray-800 hover:bg-gray-50 transition-colors"
         >
           <h3 className="text-lg font-bold mb-4">Quick Medicine Check</h3>
           {medicines.slice(0, 3).map((medicine) => (
@@ -152,6 +152,7 @@ export default function Dashboard({ heartRate, steps, medicines, milestones }) {
         <p className="text-gray-600">
           Track your daily health metrics and achieve your goals
         </p>
+        <p className="text-gray-600">Welcome back, User!</p>
       </div>
 
       {activeTab !== "dashboard" && (

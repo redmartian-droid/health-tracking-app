@@ -2,13 +2,12 @@ export default function HeartRateMetricCard({
   title,
   value,
   unit,
-  icon: Icon,
-  color = "#5BBE45",
+
   trend,
 }) {
   return (
     <div className="p-3 rounded-full">
-      <Icon className="w-64 h-64" style={{ color }} />
+      <img src="/heartImg.svg" alt="icon" className="w-260 h-330" />
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-600 text-sm font-medium">{title}</p>

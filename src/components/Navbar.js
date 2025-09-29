@@ -1,8 +1,18 @@
 import { Trophy, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { auth } from "../firebase/config";
 
-export default function Navigation({ totalPoints }) {
+import { useAuthState } from "react-firebase-hooks/auth";
+
+export default function Navigation({
+  currentPage,
+  setCurrentPage,
+  totalPoints,
+}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user] = useAuthState(auth);
+
+  const username = user?.displayName || user?.email || "User";
 
   return (
     <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50">
@@ -21,6 +31,21 @@ export default function Navigation({ totalPoints }) {
               🏆
               <span>{totalPoints} pts</span>
             </div>
+
+            <button
+              onClick={() => setCurrentPage("settings")}
+              className="flex items-center gap-3"
+            >
+              <img
+                src="/userIcon.png"
+                alt="Settings"
+                className="ml-8 w-8 h-8 cursor-pointer"
+              />
+
+              <span className="text-sm font-medium text-gray-700">
+                {username}
+              </span>
+            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -42,12 +67,27 @@ export default function Navigation({ totalPoints }) {
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-gray-200/50 py-4">
             {/* Mobile Points */}
-            <div className="flex justify-center mb-4">
+            <div className="flex  mb-4">
               <div className="flex items-center gap-2 bg-white-900 text-black px-4 py-2 rounded-full text-sm font-medium">
-                <Trophy className="w-4 h-4 text-black-400" />
+                🏆
                 <span>{totalPoints} pts</span>
               </div>
             </div>
+
+            <button
+              onClick={() => setCurrentPage("settings")}
+              className="flex items-center gap-3"
+            >
+              <img
+                src="/userIcon.png"
+                alt="Settings"
+                className="w-8 h-8 cursor-pointer"
+              />
+
+              <span className="text-sm font-medium text-gray-700">
+                {username}
+              </span>
+            </button>
           </div>
         )}
       </div>
