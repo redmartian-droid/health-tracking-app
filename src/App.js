@@ -44,35 +44,7 @@ function App() {
 }
 
 function AuthWrapper() {
-  const [user, loading, error] = useAuthState(auth);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50 text-gray-800">
-        <div className="text-center">
-          <LoaderCircle className="animate-spin rounded-full h-32 w-32 text-green-500" />
-          <p className="mt-4">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error("Authentication error:", error);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50 text-red-500">
-        <div className="text-center">
-          <h2 className="text-xl mb-4">Authentication Error</h2>
-          <p>{error.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <AuthRoutes />;
-  }
-
+  // Skip authentication for now - go directly to the main app
   return <HealthTracker />;
 }
 

@@ -11,14 +11,43 @@ const SignIn = () => {
 
   const handleSignIn = async () => {
     try {
-      console.log("Attempting to sign in with:", email); // Debug log
+      console.log("Attempting to sign in with:", email);
       const res = await signInWithEmailAndPassword(email, password);
-      console.log("Sign in successful:", res); // Debug log
+      console.log("Sign in successful:", res);
+      if (res && res.user) {
+        console.log("User authenticated successfully:", res.user.uid);
+        navigate("/dashboard");
+      }
       setEmail("");
       setPassword("");
     } catch (e) {
-      console.error("Sign in error:", e.code, e.message); // Detailed error log
-      // Temporary alert to see if we're actually hitting the catch block
+      console.error("Sign in error:", e);
+      if (e.code) {
+        console.error("Error code:", e.code);
+        console.error("Error message:", e.message);
+      }
+      // Show user-friendly error message based on error code
+      let errorMessage = "Sign in failed. ";
+      switch (e.code) {
+        case 'auth/user-not-found':
+          errorMessage += "No account found with this email address.";
+          break;
+        case 'auth/wrong-password':
+          errorMessage += "Incorrect password.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage += "Invalid email address.";
+          break;
+        case 'auth/user-disabled':
+          errorMessage += "This account has been disabled.";
+          break;
+        case 'auth/too-many-requests':
+          errorMessage += "Too many failed attempts. Please try again later.";
+          break;
+        default:
+          errorMessage += e.message || 'Unknown error occurred';
+      }
+      alert(errorMessage);
     }
   };
 
