@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Health Tracking App",
+    "slug": "health-tracking-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/logo512.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./public/logo512.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.healthtrackingapp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./public/logo512.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.healthtrackingapp"
+    },
+    "web": {
+      "favicon": "./public/favicon.ico"
+    }
+  }
+}

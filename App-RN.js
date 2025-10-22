@@ -9,7 +9,7 @@ import {
   StatusBar,
   SafeAreaView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 // Import components (we'll create these next)
 import Dashboard from './src/components-rn/Dashboard';
@@ -170,7 +170,7 @@ function HealthTracker() {
             iconName = 'settings';
           }
 
-          return <Icon name={iconName} size={size} color={color} />;
+          return <MaterialIcons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#10b981',
         tabBarInactiveTintColor: 'gray',
