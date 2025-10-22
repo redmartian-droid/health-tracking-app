@@ -1,5 +1,6 @@
-import React from "react";
-import { Target, TrendingUp, CheckCircle } from "lucide-react";
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function MilestonesPage({ milestones, totalPoints }) {
   const completedCount = milestones.filter((m) => m.completed).length;
@@ -9,145 +10,327 @@ export default function MilestonesPage({ milestones, totalPoints }) {
   ).length;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Milestones & Progress</h2>
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Milestones & Progress</Text>
 
-      {/* Progress Overview */}
-      <div className="bg-gray-100 rounded-lg p-6 mb-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-4"></div>
-          <h3 className="text-xl font-bold mb-4">Milestone Progress</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="bg-gray-200 rounded-lg p-4">
-              <p className="text-2xl font-bold">{completedCount}</p>
-              <p className="text-sm">Completed</p>
-            </div>
-            <div className="bg-gray-200 rounded-lg p-4">
-              <p className="text-2xl font-bold">{inProgressCount}</p>
-              <p className="text-sm">In Progress</p>
-            </div>
-            <div className="bg-gray-200 rounded-lg p-4">
-              <p className="text-2xl font-bold">{nearCompletionCount}</p>
-              <p className="text-sm">Almost There</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        <View style={styles.overviewCard}>
+          <Text style={styles.overviewTitle}>Milestone Progress</Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{completedCount}</Text>
+              <Text style={styles.statLabel}>Completed</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{inProgressCount}</Text>
+              <Text style={styles.statLabel}>In Progress</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{nearCompletionCount}</Text>
+              <Text style={styles.statLabel}>Almost There</Text>
+            </View>
+          </View>
+        </View>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Completed Milestones */}
-        <div className="bg-white rounded-lg border p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <CheckCircle className="w-6 h-6" />
-            <h3 className="text-xl font-bold">Completed Milestones</h3>
-          </div>
+        <View style={styles.sectionsContainer}>
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+              <Text style={styles.sectionTitle}>Completed Milestones</Text>
+            </View>
 
-          {milestones.filter((m) => m.completed).length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <CheckCircle className="w-16 h-16 mx-auto mb-4" />
-              <p className="text-lg">No milestones completed yet</p>
-              <p className="text-sm">
-                Keep working to achieve your first milestone!
-              </p>
-            </div>
-          ) : (
-            milestones
-              .filter((m) => m.completed)
-              .map((milestone) => (
-                <div
-                  key={milestone.id}
-                  className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg mb-3 border"
-                >
-                  <div className="p-2 bg-gray-200 rounded-full">
-                    <CheckCircle className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{milestone.title}</h4>
-                    <p className="text-sm text-gray-600">
-                      Target: {milestone.target.toLocaleString()}{" "}
-                      {milestone.type}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      ✓ Milestone achieved!
-                    </p>
-                  </div>
-                </div>
-              ))
-          )}
-        </div>
+            {milestones.filter((m) => m.completed).length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="checkmark-circle-outline" size={64} color="#d1d5db" />
+                <Text style={styles.emptyTitle}>No milestones completed yet</Text>
+                <Text style={styles.emptySubtitle}>
+                  Keep working to achieve your first milestone!
+                </Text>
+              </View>
+            ) : (
+              milestones
+                .filter((m) => m.completed)
+                .map((milestone) => (
+                  <View key={milestone.id} style={styles.completedMilestone}>
+                    <View style={styles.milestoneIcon}>
+                      <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                    </View>
+                    <View style={styles.milestoneContent}>
+                      <Text style={styles.milestoneName}>{milestone.title}</Text>
+                      <Text style={styles.milestoneTarget}>
+                        Target: {milestone.target.toLocaleString()} {milestone.type}
+                      </Text>
+                      <Text style={styles.milestoneAchieved}>✓ Milestone achieved!</Text>
+                    </View>
+                  </View>
+                ))
+            )}
+          </View>
 
-        {/* In Progress Milestones */}
-        <div className="bg-white rounded-lg border p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <TrendingUp className="w-6 h-6" />
-            <h3 className="text-xl font-bold">In Progress</h3>
-          </div>
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="trending-up" size={24} color="#3b82f6" />
+              <Text style={styles.sectionTitle}>In Progress</Text>
+            </View>
 
-          {milestones.filter((m) => !m.completed).length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Target className="w-16 h-16 mx-auto mb-4" />
-              <p className="text-lg">All milestones completed!</p>
-              <p className="text-sm">
-                Amazing work! You've achieved everything!
-              </p>
-            </div>
-          ) : (
-            milestones
-              .filter((m) => !m.completed)
-              .map((milestone) => {
-                const progress = (milestone.current / milestone.target) * 100;
-                const isNearCompletion = progress > 80;
+            {milestones.filter((m) => !m.completed).length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="flag-outline" size={64} color="#d1d5db" />
+                <Text style={styles.emptyTitle}>All milestones completed!</Text>
+                <Text style={styles.emptySubtitle}>
+                  Amazing work! You've achieved everything!
+                </Text>
+              </View>
+            ) : (
+              milestones
+                .filter((m) => !m.completed)
+                .map((milestone) => {
+                  const progress = (milestone.current / milestone.target) * 100;
+                  const isNearCompletion = progress > 80;
 
-                return (
-                  <div
-                    key={milestone.id}
-                    className={`p-4 rounded-lg mb-3 border ${
-                      isNearCompletion ? "bg-gray-100" : "bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{milestone.title}</h4>
-                      {isNearCompletion && (
-                        <span className="text-xs bg-gray-200 px-2 py-1 rounded-full font-medium">
-                          Almost there!
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">
-                      Target: {milestone.target.toLocaleString()}{" "}
-                      {milestone.type}
-                    </p>
-                    <div className="mb-2">
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>
-                          Current: {milestone.current.toLocaleString()}
-                        </span>
-                        <span>Goal: {milestone.target.toLocaleString()}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="h-2 rounded-full transition-all duration-500 bg-gray-600"
-                          style={{ width: `${Math.min(progress, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm font-medium">
-                        {Math.round(progress)}% complete
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {(
-                          milestone.target - milestone.current
-                        ).toLocaleString()}{" "}
-                        remaining
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-          )}
-        </div>
-      </div>
-    </div>
+                  return (
+                    <View
+                      key={milestone.id}
+                      style={[
+                        styles.inProgressMilestone,
+                        isNearCompletion && styles.nearCompletion,
+                      ]}
+                    >
+                      <View style={styles.milestoneHeader}>
+                        <Text style={styles.milestoneName}>{milestone.title}</Text>
+                        {isNearCompletion && (
+                          <View style={styles.almostBadge}>
+                            <Text style={styles.almostBadgeText}>Almost there!</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.milestoneTarget}>
+                        Target: {milestone.target.toLocaleString()} {milestone.type}
+                      </Text>
+                      <View style={styles.progressSection}>
+                        <View style={styles.progressInfo}>
+                          <Text style={styles.progressLabel}>
+                            Current: {milestone.current.toLocaleString()}
+                          </Text>
+                          <Text style={styles.progressLabel}>
+                            Goal: {milestone.target.toLocaleString()}
+                          </Text>
+                        </View>
+                        <View style={styles.progressBarContainer}>
+                          <View
+                            style={[
+                              styles.progressBarFill,
+                              { width: `${Math.min(progress, 100)}%` },
+                            ]}
+                          />
+                        </View>
+                        <View style={styles.progressFooter}>
+                          <Text style={styles.progressPercent}>
+                            {Math.round(progress)}% complete
+                          </Text>
+                          <Text style={styles.progressRemaining}>
+                            {(milestone.target - milestone.current).toLocaleString()}{' '}
+                            remaining
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })
+            )}
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+  },
+  content: {
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 24,
+  },
+  overviewCard: {
+    backgroundColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  overviewTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  sectionsContainer: {
+    gap: 16,
+  },
+  sectionCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    color: '#6b7280',
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  completedMilestone: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    gap: 12,
+  },
+  milestoneIcon: {
+    backgroundColor: '#d1d5db',
+    borderRadius: 20,
+    padding: 8,
+  },
+  milestoneContent: {
+    flex: 1,
+  },
+  milestoneName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  milestoneTarget: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  milestoneAchieved: {
+    fontSize: 10,
+    color: '#9ca3af',
+    marginTop: 4,
+  },
+  inProgressMilestone: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  nearCompletion: {
+    backgroundColor: '#e5e7eb',
+  },
+  milestoneHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  almostBadge: {
+    backgroundColor: '#d1d5db',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  almostBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  progressSection: {
+    marginTop: 12,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  progressBarContainer: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#4b5563',
+    borderRadius: 4,
+  },
+  progressFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressPercent: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  progressRemaining: {
+    fontSize: 10,
+    color: '#9ca3af',
+  },
+});

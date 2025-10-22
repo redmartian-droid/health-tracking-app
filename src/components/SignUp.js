@@ -1,64 +1,152 @@
-import { useState } from "react";
-import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase/config";
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from 'react-native';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
-const SignUp = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [createUserWithEmailAndPassword] =
-    useCreateUserWithEmailAndPassword(auth);
-  const navigate = useNavigate();
+const SignUp = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password should be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await createUserWithEmailAndPassword(email, password);
-      console.log({ res });
-      setEmail("");
-      setPassword("");
-      // Navigation seems to be handled by the AuthWrapper component unlike in next.js router
-    } catch (e) {
-      console.error(e);
+      await createUserWithEmailAndPassword(auth, email, password);
+      setEmail('');
+      setPassword('');
+    } catch (error) {
+      console.error('Sign up error:', error.code, error.message);
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-green-50">
-      <div className="p-10  w-96">
-        <h1 className="text-green-800 text-2xl mb-5">Sign Up</h1>
-        <input
-          type="email"
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.content}>
+        <Text style={styles.title}>Sign Up</Text>
+        
+        <TextInput
+          style={styles.input}
           placeholder="Email"
+          placeholderTextColor="#9ca3af"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 bg-white rounded outline-none text-white placeholder-gray-500"
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
         />
-        <input
-          type="password"
+        
+        <TextInput
+          style={styles.input}
           placeholder="Password"
+          placeholderTextColor="#9ca3af"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 bg-white rounded outline-none text-white placeholder-gray-500"
+          onChangeText={setPassword}
+          secureTextEntry
+          autoCapitalize="none"
+          autoComplete="password"
         />
-        <button
-          onClick={handleSignUp}
-          className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
-          style={{ borderBottomColor: " #16A34A" }}
+        
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleSignUp}
+          disabled={loading}
         >
-          Sign Up
-        </button>
-        <p className="text-gray-400 text-center mt-4">
-          Already have an account?{" "}
-          <button
-            onClick={() => navigate("/")}
-            className="text-green-500 hover:text-green-800"
-          >
-            Sign In
-          </button>
-        </p>
-      </div>
-    </div>
+          <Text style={styles.buttonText}>
+            {loading ? 'Creating Account...' : 'Sign Up'}
+          </Text>
+        </TouchableOpacity>
+        
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
+            <Text style={styles.linkText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#166534',
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  button: {
+    backgroundColor: '#22c55e',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: '#86efac',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+  },
+  footerText: {
+    color: '#6b7280',
+    fontSize: 14,
+  },
+  linkText: {
+    color: '#22c55e',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
 
 export default SignUp;

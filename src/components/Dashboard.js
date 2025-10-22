@@ -1,170 +1,254 @@
-import React, { useState, useEffect } from "react";
-import { Activity, Pill, Check, Heart } from "lucide-react";
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { Heart as HeartBeat } from "lucide-react";
+export default function Dashboard({ heartRate, steps, medicines, milestones, navigation }) {
+  const completedMedicines = medicines.reduce(
+    (acc, m) => acc + Object.values(m.taken).filter(Boolean).length,
+    0
+  );
+  const totalMedicines = medicines.reduce((acc, m) => acc + m.times.length, 0);
 
-import MetricCard from "./MetricCard";
-import HeartRateMetricCard from "./HeartRateMetricCard";
-import HeartRatePage from "./HeartRatePage";
-import StepsPage from "./StepsPage";
-import MedicinePage from "./MedicinePage";
-import MilestonesPage from "./MilestonesPage";
-// import { EKGMonitor } from ".";
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Health Dashboard</Text>
+          <Text style={styles.headerSubtitle}>
+            Track your daily health metrics and achieve your goals
+          </Text>
+          <Text style={styles.welcomeText}>Welcome back, User!</Text>
+        </View>
 
-export default function Dashboard({ heartRate, steps, medicines, milestones }) {
-  const [activeTab, setActiveTab] = useState("dashboard");
+        <View style={styles.metricsGrid}>
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => navigation.navigate('Heart')}
+          >
+            <View style={styles.cardHeader}>
+              <Ionicons name="heart" size={24} color="#ef4444" />
+              <Text style={styles.cardTitle}>Heart Rate</Text>
+            </View>
+            <Text style={styles.cardValue}>{heartRate}</Text>
+            <Text style={styles.cardUnit}>BPM</Text>
+          </TouchableOpacity>
 
-  // const [setEKGMonitorAvailability] = useState("");
-  // const [heartBeat, updateHeartRate] = useState(0);
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => navigation.navigate('Steps')}
+          >
+            <View style={styles.cardHeader}>
+              <Ionicons name="footsteps" size={24} color="#3b82f6" />
+              <Text style={styles.cardTitle}>Steps Today</Text>
+            </View>
+            <Text style={styles.cardValue}>{steps}</Text>
+            <Text style={styles.cardUnit}>steps</Text>
+          </TouchableOpacity>
 
-  //  useEffect(() => {
-  //    subscribe();
-  //  });
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => navigation.navigate('Medicine')}
+          >
+            <View style={styles.cardHeader}>
+              <Ionicons name="medical" size={24} color="#8b5cf6" />
+              <Text style={styles.cardTitle}>Medicines Today</Text>
+            </View>
+            <Text style={styles.cardValue}>
+              {completedMedicines} / {totalMedicines}
+            </Text>
+            <Text style={styles.cardUnit}>taken</Text>
+          </TouchableOpacity>
+        </View>
 
-  //const subscribe = () => {
-  //  EKGMonitor.watchHeartBeat((result) => {
-  //    updateHeartRate(result.steps);
-  //  });
-
-  // EKGMonitor.isAvailableAsync().then(
-  //   (result) => {
-  //    setEKGMonitorAvailability(String(result));
-  //  },
-  //  (error) => {
-  //    setEKGMonitorAvailability(error);
-  //  }
-  //  );
-  // };
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "heart-rate":
-        return <HeartRatePage heartRate={heartRate} />;
-      case "steps":
-        return <StepsPage steps={steps} />;
-      case "medicines":
-        return <MedicinePage medicines={medicines} />;
-      case "milestones":
-        return <MilestonesPage milestones={milestones} />;
-      default:
-        return renderDashboard();
-    }
-  };
-
-  const renderDashboard = () => (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div onClick={() => setActiveTab("heart-rate")}>
-          <HeartRateMetricCard
-            title="Heart Rate"
-            value={heartRate}
-            unit="BPM"
-            icon={Heart}
-            trend={2}
-          />
-        </div>
-
-        <div onClick={() => setActiveTab("steps")}>
-          <MetricCard
-            title="Steps Today"
-            //  value={heartBeat}
-            unit="steps"
-            icon={Activity}
-            trend={15}
-          />
-        </div>
-
-        <div onClick={() => setActiveTab("medicines")}>
-          <MetricCard
-            title="Medicines Today"
-            value={medicines.reduce(
-              (acc, m) => acc + Object.values(m.taken).filter(Boolean).length,
-              0
-            )}
-            unit={`/ ${medicines.reduce((acc, m) => acc + m.times.length, 0)}`}
-            icon={Pill}
-            trend={-5}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div
-          onClick={() => setActiveTab("milestones")}
-          className="bg-white rounded-xl shadow-lg p-6 border-gray-800 hover:bg-gray-50 transition-colors"
+        <TouchableOpacity
+          style={styles.sectionCard}
+          onPress={() => navigation.navigate('Milestones')}
         >
-          <h3 className="text-lg font-bold mb-4">Recent Milestones</h3>
+          <Text style={styles.sectionTitle}>Recent Milestones</Text>
           {milestones
             .filter((m) => m.completed)
             .slice(0, 3)
             .map((milestone) => (
-              <div
-                key={milestone.id}
-                className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-3"
-              >
-                <Check className="w-5 h-5" />
-                <div>
-                  <p className="font-semibold">{milestone.title}</p>
-                  <p className="text-sm text-gray-600">
+              <View key={milestone.id} style={styles.milestoneItem}>
+                <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                <View style={styles.milestoneText}>
+                  <Text style={styles.milestoneName}>{milestone.title}</Text>
+                  <Text style={styles.milestoneReward}>
                     +{milestone.reward} points earned
-                  </p>
-                </div>
-              </div>
+                  </Text>
+                </View>
+              </View>
             ))}
-        </div>
+        </TouchableOpacity>
 
-        <div
-          onClick={() => setActiveTab("medicines")}
-          className="bg-white rounded-xl shadow-lg p-6 border-gray-800 hover:bg-gray-50 transition-colors"
+        <TouchableOpacity
+          style={styles.sectionCard}
+          onPress={() => navigation.navigate('Medicine')}
         >
-          <h3 className="text-lg font-bold mb-4">Quick Medicine Check</h3>
+          <Text style={styles.sectionTitle}>Quick Medicine Check</Text>
           {medicines.slice(0, 3).map((medicine) => (
-            <div
-              key={medicine.id}
-              className="flex items-center justify-between p-3 border-b last:border-b-0"
-            >
-              <div>
-                <p className="font-semibold">{medicine.name}</p>
-                <p className="text-sm text-gray-600">{medicine.dosage}</p>
-              </div>
-              <div className="flex gap-2">
+            <View key={medicine.id} style={styles.medicineItem}>
+              <View>
+                <Text style={styles.medicineName}>{medicine.name}</Text>
+                <Text style={styles.medicineDosage}>{medicine.dosage}</Text>
+              </View>
+              <View style={styles.medicineTimesContainer}>
                 {medicine.times.map((time) => (
-                  <span
+                  <View
                     key={time}
-                    className={`px-2 py-1 rounded text-xs ${
-                      medicine.taken[time] ? "bg-gray-200" : "bg-gray-100"
-                    }`}
+                    style={[
+                      styles.medicineTimeChip,
+                      medicine.taken[time] && styles.medicineTimeTaken,
+                    ]}
                   >
-                    {time}
-                  </span>
+                    <Text style={styles.medicineTimeText}>{time}</Text>
+                  </View>
                 ))}
-              </div>
-            </div>
+              </View>
+            </View>
           ))}
-        </div>
-      </div>
-    </>
-  );
-
-  return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">Health Dashboard</h2>
-        <p className="text-gray-600">
-          Track your daily health metrics and achieve your goals
-        </p>
-        <p className="text-gray-600">Welcome back, User!</p>
-      </div>
-
-      {activeTab !== "dashboard" && (
-        <button
-          onClick={() => setActiveTab("dashboard")}
-          className="mb-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-        >
-          ← Back to dashboard
-        </button>
-      )}
-
-      {renderTabContent()}
-    </div>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+  },
+  content: {
+    padding: 16,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  welcomeText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  metricsGrid: {
+    marginBottom: 24,
+  },
+  metricCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginLeft: 8,
+  },
+  cardValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  cardUnit: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  sectionCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 16,
+  },
+  milestoneItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  milestoneText: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  milestoneName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  milestoneReward: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  medicineItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  medicineName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  medicineDosage: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  medicineTimesContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  medicineTimeChip: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  medicineTimeTaken: {
+    backgroundColor: '#d1d5db',
+  },
+  medicineTimeText: {
+    fontSize: 12,
+    color: '#374151',
+  },
+});

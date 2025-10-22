@@ -11,8 +11,28 @@
 # production
 /build
 
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.ipa
+*.apk
+
+# Metro
+.metro-health-check*
+
 # misc
 .DS_Store
+.env
 .env.local
 .env.development.local
 .env.test.local

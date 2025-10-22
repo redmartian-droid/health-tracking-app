@@ -1,5 +1,15 @@
-import React, { useState } from "react";
-import { Pill, Plus, Check, Clock } from "lucide-react";
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Alert,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function MedicinePage({
   medicines,
@@ -8,27 +18,28 @@ export default function MedicinePage({
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMedicine, setNewMedicine] = useState({
-    name: "",
-    dosage: "",
-    times: [""],
+    name: '',
+    dosage: '',
+    times: [''],
   });
 
-  const handleAddMedicine = (e) => {
-    e.preventDefault();
+  const handleAddMedicine = () => {
     if (newMedicine.name && newMedicine.dosage && newMedicine.times[0]) {
       addMedicine({
         ...newMedicine,
         times: newMedicine.times.filter((time) => time),
       });
-      setNewMedicine({ name: "", dosage: "", times: [""] });
+      setNewMedicine({ name: '', dosage: '', times: [''] });
       setShowAddForm(false);
+    } else {
+      Alert.alert('Error', 'Please fill in all fields');
     }
   };
 
   const addTimeSlot = () => {
     setNewMedicine({
       ...newMedicine,
-      times: [...newMedicine.times, ""],
+      times: [...newMedicine.times, ''],
     });
   };
 
@@ -39,148 +50,365 @@ export default function MedicinePage({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold">Medicine Tracker</h2>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
-          style={{ borderBottomColor: " #16A34A" }}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Medicine Tracker</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowAddForm(true)}
         >
-          <Plus className="w-4 h-4" />
-          Add Medicine
-        </button>
-      </div>
+          <Ionicons name="add" size={20} color="#ffffff" />
+          <Text style={styles.addButtonText}>Add</Text>
+        </TouchableOpacity>
+      </View>
 
-      {showAddForm && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div>
-            <h3 className="text-xl font-bold mb-4">Add New Medicine</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Medicine Name
-                </label>
-                <input
-                  type="text"
-                  value={newMedicine.name}
-                  onChange={(e) =>
-                    setNewMedicine({ ...newMedicine, name: e.target.value })
-                  }
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter medicine name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Dosage</label>
-                <input
-                  type="text"
-                  value={newMedicine.dosage}
-                  onChange={(e) =>
-                    setNewMedicine({ ...newMedicine, dosage: e.target.value })
-                  }
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., 10mg, 2 tablets"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Times</label>
-              {newMedicine.times.map((time, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => updateTimeSlot(index, e.target.value)}
-                    className="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addTimeSlot}
-                className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
-                style={{ borderBottomColor: " #16A34A" }}
-              >
-                + Add another time
-              </button>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                type="button"
-                onClick={handleAddMedicine}
-                className="bg-green-500 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
-                style={{ borderBottomColor: " #16A34A" }}
-              >
-                Add Medicine
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="bg-gray-400 border-b-4 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-500 transition-colors"
-                style={{ borderBottomColor: " #6B7280" }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ScrollView style={styles.content}>
+        {medicines.length === 0 && !showAddForm && (
+          <View style={styles.emptyState}>
+            <Ionicons name="medical" size={64} color="#d1d5db" />
+            <Text style={styles.emptyTitle}>No medicines added yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Click "Add" to start tracking your medications
+            </Text>
+          </View>
+        )}
 
-      <div className="space-y-4">
         {medicines.map((medicine) => (
-          <div key={medicine.id} className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-xl font-bold">{medicine.name}</h3>
-                <p className="text-gray-600">{medicine.dosage}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Pill className="w-5 h-5 text-purple-600" />
-                <span className="text-sm text-gray-500">
-                  {Object.values(medicine.taken).filter(Boolean).length} /{" "}
+          <View key={medicine.id} style={styles.medicineCard}>
+            <View style={styles.medicineHeader}>
+              <View>
+                <Text style={styles.medicineName}>{medicine.name}</Text>
+                <Text style={styles.medicineDosage}>{medicine.dosage}</Text>
+              </View>
+              <View style={styles.medicineProgress}>
+                <Ionicons name="medical" size={20} color="#8b5cf6" />
+                <Text style={styles.progressText}>
+                  {Object.values(medicine.taken).filter(Boolean).length} /{' '}
                   {medicine.times.length} taken
-                </span>
-              </div>
-            </div>
+                </Text>
+              </View>
+            </View>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <View style={styles.timesGrid}>
               {medicine.times.map((time) => (
-                <button
+                <TouchableOpacity
                   key={time}
-                  onClick={() => toggleMedicine(medicine.id, time)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    medicine.taken[time]
-                      ? "border-green-500 bg-green-50 text-green-800"
-                      : "border-gray-200 hover:border-blue-500 hover:bg-blue-50"
-                  }`}
+                  style={[
+                    styles.timeButton,
+                    medicine.taken[time] && styles.timeButtonTaken,
+                  ]}
+                  onPress={() => toggleMedicine(medicine.id, time)}
                 >
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span className="font-semibold">{time}</span>
-                    {medicine.taken[time] && <Check className="w-4 h-4" />}
-                  </div>
-                  <div className="text-xs mt-1">
-                    {medicine.taken[time] ? "Taken" : "Pending"}
-                  </div>
-                </button>
+                  <View style={styles.timeContent}>
+                    <Ionicons
+                      name="time-outline"
+                      size={16}
+                      color={medicine.taken[time] ? '#166534' : '#6b7280'}
+                    />
+                    <Text
+                      style={[
+                        styles.timeText,
+                        medicine.taken[time] && styles.timeTextTaken,
+                      ]}
+                    >
+                      {time}
+                    </Text>
+                    {medicine.taken[time] && (
+                      <Ionicons name="checkmark" size={16} color="#166534" />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.timeStatus,
+                      medicine.taken[time] && styles.timeStatusTaken,
+                    ]}
+                  >
+                    {medicine.taken[time] ? 'Taken' : 'Pending'}
+                  </Text>
+                </TouchableOpacity>
               ))}
-            </div>
-          </div>
+            </View>
+          </View>
         ))}
-      </div>
+      </ScrollView>
 
-      {medicines.length === 0 && !showAddForm && (
-        <div className="text-center py-12">
-          <Pill className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">
-            No medicines added yet
-          </h3>
-          <p className="text-gray-500">
-            Click "Add Medicine" to start tracking your medications
-          </p>
-        </div>
-      )}
-    </div>
+      <Modal
+        visible={showAddForm}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAddForm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add New Medicine</Text>
+
+            <Text style={styles.label}>Medicine Name</Text>
+            <TextInput
+              style={styles.input}
+              value={newMedicine.name}
+              onChangeText={(text) =>
+                setNewMedicine({ ...newMedicine, name: text })
+              }
+              placeholder="Enter medicine name"
+              placeholderTextColor="#9ca3af"
+            />
+
+            <Text style={styles.label}>Dosage</Text>
+            <TextInput
+              style={styles.input}
+              value={newMedicine.dosage}
+              onChangeText={(text) =>
+                setNewMedicine({ ...newMedicine, dosage: text })
+              }
+              placeholder="e.g., 10mg, 2 tablets"
+              placeholderTextColor="#9ca3af"
+            />
+
+            <Text style={styles.label}>Times</Text>
+            <ScrollView style={styles.timesInputContainer}>
+              {newMedicine.times.map((time, index) => (
+                <TextInput
+                  key={index}
+                  style={styles.input}
+                  value={time}
+                  onChangeText={(text) => updateTimeSlot(index, text)}
+                  placeholder="e.g., 08:00, Morning"
+                  placeholderTextColor="#9ca3af"
+                />
+              ))}
+              <TouchableOpacity
+                style={styles.addTimeButton}
+                onPress={addTimeSlot}
+              >
+                <Text style={styles.addTimeButtonText}>+ Add another time</Text>
+              </TouchableOpacity>
+            </ScrollView>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowAddForm(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleAddMedicine}
+              >
+                <Text style={styles.submitButtonText}>Add Medicine</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#22c55e',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  addButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  medicineCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  medicineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  medicineName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  medicineDosage: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  medicineProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  timesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  timeButton: {
+    flex: 1,
+    minWidth: '45%',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+  },
+  timeButtonTaken: {
+    borderColor: '#22c55e',
+    backgroundColor: '#f0fdf4',
+  },
+  timeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  timeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+    flex: 1,
+  },
+  timeTextTaken: {
+    color: '#166534',
+  },
+  timeStatus: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  timeStatusTaken: {
+    color: '#166534',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    width: '90%',
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 8,
+  },
+  timesInputContainer: {
+    maxHeight: 150,
+  },
+  addTimeButton: {
+    backgroundColor: '#22c55e',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  addTimeButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#6b7280',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  submitButton: {
+    flex: 1,
+    backgroundColor: '#22c55e',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+});
