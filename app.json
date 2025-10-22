@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Health Tracking App",
+    "slug": "health-tracking-app",
+    "version": "1.0.0",
+    "sdkVersion": "49.0.0",
+    "platforms": ["ios", "android", "web"],
+    "extra": {
+      "firebaseApiKey": "<PUT_FIREBASE_API_KEY_HERE>",
+      "firebaseAuthDomain": "<PUT_FIREBASE_AUTH_DOMAIN>",
+      "firebaseProjectId": "<PUT_FIREBASE_PROJECT_ID>",
+      "firebaseStorageBucket": "<PUT_FIREBASE_STORAGE_BUCKET>",
+      "firebaseMessagingSenderId": "<PUT_FIREBASE_MESSAGING_SENDER_ID>",
+      "firebaseAppId": "<PUT_FIREBASE_APP_ID>"
+    }
+  }
+}
