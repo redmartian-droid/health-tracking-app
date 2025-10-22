@@ -6,7 +6,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
-import { auth } from './src/firebase/config';
+// Firebase disabled for UI testing
+// import { auth } from './src/firebase/config';
 import SignIn from './src/components/SignIn';
 import SignUp from './src/components/SignUp';
 import Dashboard from './src/components/Dashboard';
@@ -22,16 +23,20 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Skipping auth for UI testing - directly show the app
+  const user = { uid: 'test-user' }; // Mock user
+  const loading = false;
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-      setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
+  // Commented out Firebase auth
+  // const [user, setUser] = useState(null);
+  // const [loading, setLoading] = useState(true);
+  // useEffect(() => {
+  //   const unsubscribe = auth.onAuthStateChanged((user) => {
+  //     setUser(user);
+  //     setLoading(false);
+  //   });
+  //   return unsubscribe;
+  // }, []);
 
   if (loading) {
     return (

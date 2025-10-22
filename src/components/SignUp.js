@@ -9,8 +9,9 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase/config';
+// Firebase disabled for UI testing
+// import { createUserWithEmailAndPassword } from 'firebase/auth';
+// import { auth } from '../firebase/config';
 
 const SignUp = ({ navigation }) => {
   const [email, setEmail] = useState('');

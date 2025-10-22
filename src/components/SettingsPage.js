@@ -11,8 +11,9 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/config';
+// Firebase disabled for UI testing
+// import { signOut } from 'firebase/auth';
+// import { auth } from '../firebase/config';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
