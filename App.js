@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 
 // Firebase disabled for UI testing
 // import { auth } from './src/firebase/config';
+import SplashScreen from './src/components/SplashScreenNative';
 import SignIn from './src/components/SignIn';
 import SignUp from './src/components/SignUp';
 import Dashboard from './src/components/Dashboard';
@@ -23,6 +24,16 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
   // Skipping auth for UI testing - directly show the app
   const user = { uid: 'test-user' }; // Mock user
   const loading = false;

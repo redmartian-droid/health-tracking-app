@@ -18,6 +18,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "./firebase/config";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
+import SplashScreen from "./components/SplashScreen";
 
 import "./App.css";
 import Navigation from "./components/Navbar";
@@ -36,6 +37,16 @@ import { LoaderCircle } from "lucide-react";
 // this specific component handles routing so no need for dedicated routing in each component
 // AuthWrapper component checks auth state and conditionally renders routes
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
   return (
     <Router>
       <AuthWrapper />

@@ -1,0 +1,222 @@
+/* Splash Screen Container */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease-out;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+/* Heart Icon Container */
+.splash-icon-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Heart Icon */
+.splash-icon {
+  width: 80px;
+  height: 80px;
+  color: white;
+  opacity: 0;
+  transform: scale(0.3);
+  animation: iconReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.splash-screen.logo-reveal .splash-icon {
+  animation: iconReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             heartbeat 1.5s ease-in-out 0.8s infinite;
+}
+
+@keyframes iconReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-10deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.15);
+  }
+  20% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.15);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Pulse Rings */
+.splash-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+}
+
+.splash-screen.logo-reveal .splash-pulse-ring {
+  animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s infinite;
+}
+
+.splash-pulse-ring-delayed {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+}
+
+.splash-screen.logo-reveal .splash-pulse-ring-delayed {
+  animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.8s infinite;
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* MediCon Title */
+.splash-title {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.splash-screen.text-reveal .splash-title {
+  animation: textReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.splash-title h1 {
+  font-size: 4rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes textReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Creators */
+.splash-creators {
+  opacity: 0;
+  transform: translateY(10px);
+  text-align: center;
+}
+
+.splash-screen.creators-reveal .splash-creators {
+  animation: creatorsReveal 0.5s ease-out 0.1s forwards;
+}
+
+.splash-creators p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin: 0.25rem 0;
+  letter-spacing: 0.02em;
+}
+
+@keyframes creatorsReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .splash-icon-container {
+    width: 100px;
+    height: 100px;
+  }
+
+  .splash-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .splash-pulse-ring,
+  .splash-pulse-ring-delayed {
+    width: 64px;
+    height: 64px;
+  }
+
+  .splash-title h1 {
+    font-size: 3rem;
+  }
+
+  .splash-creators p {
+    font-size: 1rem;
+  }
+}
+
+/* Smooth fade transitions */
+.splash-screen * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
