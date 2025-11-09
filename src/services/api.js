@@ -1,10 +1,12 @@
-import { db, auth } from "../firebase/config";
+import { db } from "../firebase/config";
 import {
   collection,
   addDoc,
+  setDoc,
   updateDoc,
   doc,
   getDocs,
+  getDoc,
   query,
   where,
   serverTimestamp,
@@ -13,13 +15,70 @@ import {
 import wifiService from "./wifiService";
 
 export const API = {
+  // Profile functions - ADDED THESE
+  getProfile: async (profileId) => {
+    try {
+      const profileRef = doc(db, "profiles", profileId);
+      const profileSnap = await getDoc(profileRef);
+
+      if (profileSnap.exists()) {
+        return { id: profileSnap.id, ...profileSnap.data() };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting profile:", error);
+      return null;
+    }
+  },
+
+  createProfile: async (profileData) => {
+    try {
+      const profileWithTimestamp = {
+        ...profileData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      // If profileData has an id, use it as the document ID
+      if (profileData.id) {
+        const profileRef = doc(db, "profiles", profileData.id);
+        await setDoc(profileRef, profileWithTimestamp);
+        return { id: profileData.id, ...profileWithTimestamp };
+      } else {
+        // Otherwise let Firestore generate an ID
+        const docRef = await addDoc(
+          collection(db, "profiles"),
+          profileWithTimestamp
+        );
+        return { id: docRef.id, ...profileWithTimestamp };
+      }
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      throw error;
+    }
+  },
+
+  updateProfile: async (profileId, updates) => {
+    try {
+      const profileRef = doc(db, "profiles", profileId);
+      await updateDoc(profileRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  },
+
   // Health data functions with WiFi integration
   getHeartRate: async () => {
     try {
       // Try to get data from WiFi watch first
       if (wifiService.getConnectionStatus()) {
         const cachedData = wifiService.getCachedData();
-        
+
         // Return WiFi data if available and recent (within last 30 seconds)
         if (cachedData.heartRate > 0 && cachedData.lastUpdate) {
           const timeDiff = Date.now() - cachedData.lastUpdate.getTime();
@@ -29,9 +88,9 @@ export const API = {
         }
       }
     } catch (error) {
-      console.error('WiFi heart rate error:', error);
+      console.error("WiFi heart rate error:", error);
     }
-    
+
     // Fallback to mock data if watch not connected or no data available
     return Promise.resolve(Math.floor(Math.random() * 40) + 60);
   },
@@ -41,7 +100,7 @@ export const API = {
       // Try to get data from WiFi watch first
       if (wifiService.getConnectionStatus()) {
         const cachedData = wifiService.getCachedData();
-        
+
         // Return WiFi data if available and recent (within last 30 seconds)
         if (cachedData.steps >= 0 && cachedData.lastUpdate) {
           const timeDiff = Date.now() - cachedData.lastUpdate.getTime();
@@ -51,9 +110,9 @@ export const API = {
         }
       }
     } catch (error) {
-      console.error('WiFi steps error:', error);
+      console.error("WiFi steps error:", error);
     }
-    
+
     // Fallback to mock data if watch not connected or no data available
     return Promise.resolve(Math.floor(Math.random() * 8000) + 2000);
   },
@@ -63,18 +122,19 @@ export const API = {
     try {
       if (wifiService.getConnectionStatus()) {
         const cachedData = wifiService.getCachedData();
-        
+
         if (cachedData.battery > 0 && cachedData.lastUpdate) {
           const timeDiff = Date.now() - cachedData.lastUpdate.getTime();
-          if (timeDiff < 60000) { // 1 minute cache
+          if (timeDiff < 60000) {
+            // 1 minute cache
             return cachedData.battery;
           }
         }
       }
     } catch (error) {
-      console.error('WiFi battery error:', error);
+      console.error("WiFi battery error:", error);
     }
-    
+
     // Fallback
     return 100;
   },
@@ -93,14 +153,16 @@ export const API = {
   },
 
   // Fetch medicines from Firestore and handle adding/updating for medicines
-  getMedicines: async () => {
+  getMedicines: async (profileId) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
+      if (!db) {
+        console.error("Firestore db is not initialized");
+        return [];
+      }
 
       const q = query(
         collection(db, "medicines"),
-        where("userId", "==", userId)
+        where("profileId", "==", profileId)
       );
       const snapshot = await getDocs(q);
       return snapshot.docs.map((doc) => ({
@@ -113,7 +175,7 @@ export const API = {
     }
   },
 
-  updateMedicine: async (medicineId, time, taken) => {
+  updateMedicine: async (profileId, medicineId, time, taken) => {
     try {
       const medicineRef = doc(db, "medicines", medicineId);
       await updateDoc(medicineRef, {
@@ -127,15 +189,13 @@ export const API = {
     }
   },
 
-  addMedicine: async (medicine) => {
+  addMedicine: async (profileId, medicine) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-
       const medicineData = {
         ...medicine,
-        userId,
+        profileId,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "medicines"), medicineData);
@@ -146,7 +206,7 @@ export const API = {
     }
   },
 
-  deleteMedicine: async (medicineId) => {
+  deleteMedicine: async (profileId, medicineId) => {
     try {
       await deleteDoc(doc(db, "medicines", medicineId));
       return true;
@@ -157,19 +217,21 @@ export const API = {
   },
 
   // Fetch milestones from Firestore and handle adding/updating for milestones
-  getMilestones: async () => {
+  getMilestones: async (profileId) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
+      if (!db) {
+        console.error("Firestore db is not initialized");
+        return [];
+      }
 
       const q = query(
         collection(db, "milestones"),
-        where("userId", "==", userId)
+        where("profileId", "==", profileId)
       );
       const snapshot = await getDocs(q);
 
       if (snapshot.isEmpty) {
-        return await API.createDefaultMilestones();
+        return await API.createDefaultMilestones(profileId);
       }
 
       return snapshot.docs.map((doc) => ({
@@ -182,19 +244,25 @@ export const API = {
     }
   },
 
-  createDefaultMilestones: async () => {
+  createDefaultMilestones: async (profileId) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-
       const defaultMilestones = [
         // Default milestones can be added here if needed
       ];
 
       const createdMilestones = [];
       for (const milestone of defaultMilestones) {
-        const docRef = await addDoc(collection(db, "milestones"), milestone);
-        createdMilestones.push({ id: docRef.id, ...milestone });
+        const milestoneData = {
+          ...milestone,
+          profileId,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+        const docRef = await addDoc(
+          collection(db, "milestones"),
+          milestoneData
+        );
+        createdMilestones.push({ id: docRef.id, ...milestoneData });
       }
 
       return createdMilestones;
@@ -204,7 +272,7 @@ export const API = {
     }
   },
 
-  updateMilestone: async (milestoneId, updates) => {
+  updateMilestone: async (profileId, milestoneId, updates) => {
     try {
       const milestoneRef = doc(db, "milestones", milestoneId);
       await updateDoc(milestoneRef, {
@@ -218,15 +286,13 @@ export const API = {
     }
   },
 
-  addMilestone: async (milestone) => {
+  addMilestone: async (profileId, milestone) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-
       const milestoneData = {
         ...milestone,
-        userId,
+        profileId,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "milestones"), milestoneData);
@@ -237,7 +303,7 @@ export const API = {
     }
   },
 
-  completeMilestone: async (milestoneId) => {
+  completeMilestone: async (profileId, milestoneId) => {
     try {
       const milestoneRef = doc(db, "milestones", milestoneId);
       await updateDoc(milestoneRef, {
@@ -252,7 +318,7 @@ export const API = {
     }
   },
 
-  deleteMilestone: async (milestoneId) => {
+  deleteMilestone: async (profileId, milestoneId) => {
     try {
       await deleteDoc(doc(db, "milestones", milestoneId));
       return true;
