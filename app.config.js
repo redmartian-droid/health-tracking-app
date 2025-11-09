@@ -17,6 +17,10 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.healthtracker.app',
+      infoPlist: {
+        NSBluetoothAlwaysUsageDescription: 'This app needs Bluetooth access to connect to your ESP32 smartwatch and sync health data.',
+        NSBluetoothPeripheralUsageDescription: 'This app needs Bluetooth access to connect to your ESP32 smartwatch and sync health data.',
+      },
     },
     android: {
       adaptiveIcon: {
@@ -24,6 +28,14 @@ export default {
         backgroundColor: '#ffffff',
       },
       package: 'com.healthtracker.app',
+      permissions: [
+        'BLUETOOTH',
+        'BLUETOOTH_ADMIN',
+        'BLUETOOTH_CONNECT',
+        'BLUETOOTH_SCAN',
+        'ACCESS_FINE_LOCATION',
+        'ACCESS_COARSE_LOCATION',
+      ],
     },
     web: {
       favicon: './assets/favicon.png',

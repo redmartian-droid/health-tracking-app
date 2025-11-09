@@ -7,14 +7,90 @@ import {
   getDocs,
   query,
   where,
-  serverTimestamp, // Undefined value were due to missing import
-  deleteDoc, // Undefined value were due to missing import
+  serverTimestamp,
+  deleteDoc,
 } from "firebase/firestore";
+import wifiService from "./wifiService";
 
 export const API = {
-  // These would still be mock functions for now until we plug in the arduino or ESP32 data
-  getHeartRate: () => Promise.resolve(Math.floor(Math.random() * 40) + 60),
-  getSteps: () => Promise.resolve(Math.floor(Math.random() * 8000) + 2000),
+  // Health data functions with WiFi integration
+  getHeartRate: async () => {
+    try {
+      // Try to get data from WiFi watch first
+      if (wifiService.getConnectionStatus()) {
+        const cachedData = wifiService.getCachedData();
+        
+        // Return WiFi data if available and recent (within last 30 seconds)
+        if (cachedData.heartRate > 0 && cachedData.lastUpdate) {
+          const timeDiff = Date.now() - cachedData.lastUpdate.getTime();
+          if (timeDiff < 30000) {
+            return cachedData.heartRate;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('WiFi heart rate error:', error);
+    }
+    
+    // Fallback to mock data if watch not connected or no data available
+    return Promise.resolve(Math.floor(Math.random() * 40) + 60);
+  },
+
+  getSteps: async () => {
+    try {
+      // Try to get data from WiFi watch first
+      if (wifiService.getConnectionStatus()) {
+        const cachedData = wifiService.getCachedData();
+        
+        // Return WiFi data if available and recent (within last 30 seconds)
+        if (cachedData.steps >= 0 && cachedData.lastUpdate) {
+          const timeDiff = Date.now() - cachedData.lastUpdate.getTime();
+          if (timeDiff < 30000) {
+            return cachedData.steps;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('WiFi steps error:', error);
+    }
+    
+    // Fallback to mock data if watch not connected or no data available
+    return Promise.resolve(Math.floor(Math.random() * 8000) + 2000);
+  },
+
+  // Get battery level from watch
+  getBattery: async () => {
+    try {
+      if (wifiService.getConnectionStatus()) {
+        const cachedData = wifiService.getCachedData();
+        
+        if (cachedData.battery > 0 && cachedData.lastUpdate) {
+          const timeDiff = Date.now() - cachedData.lastUpdate.getTime();
+          if (timeDiff < 60000) { // 1 minute cache
+            return cachedData.battery;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('WiFi battery error:', error);
+    }
+    
+    // Fallback
+    return 100;
+  },
+
+  // Get all cached watch data at once
+  getWatchData: () => {
+    if (wifiService.getConnectionStatus()) {
+      return wifiService.getCachedData();
+    }
+    return null;
+  },
+
+  // Check if watch is connected
+  isWatchConnected: () => {
+    return wifiService.getConnectionStatus();
+  },
 
   // Fetch medicines from Firestore and handle adding/updating for medicines
   getMedicines: async () => {
@@ -59,7 +135,7 @@ export const API = {
       const medicineData = {
         ...medicine,
         userId,
-        createdAt: serverTimestamp(), // Undefined value, investigate why
+        createdAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "medicines"), medicineData);
@@ -72,7 +148,7 @@ export const API = {
 
   deleteMedicine: async (medicineId) => {
     try {
-      await deleteDoc(doc(db, "medicines", medicineId)); // Undefined value, investigate why
+      await deleteDoc(doc(db, "medicines", medicineId));
       return true;
     } catch (error) {
       console.error("Error deleting medicine:", error);
@@ -96,11 +172,6 @@ export const API = {
         return await API.createDefaultMilestones();
       }
 
-      // If no milestones exist, create default ones
-      if (snapshot.isEmpty) {
-        return await API.createDefaultMilestones();
-      }
-
       return snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -115,9 +186,9 @@ export const API = {
     try {
       const userId = auth.currentUser?.uid;
       if (!userId) throw new Error("User not authenticated");
-      // Mock data in case user is not signed in and also for testing. NB: remember to come up with a better default milestone strategy once we have real users
+
       const defaultMilestones = [
-        // We can add default milestones here, some example ones have already been added to firestore. There is a slight lag between the default amount in the website and the amount retrieved. Find fix if possible or force longer loading state.
+        // Default milestones can be added here if needed
       ];
 
       const createdMilestones = [];
@@ -138,7 +209,7 @@ export const API = {
       const milestoneRef = doc(db, "milestones", milestoneId);
       await updateDoc(milestoneRef, {
         ...updates,
-        updatedAt: serverTimestamp(), // Undefined value, investigate why
+        updatedAt: serverTimestamp(),
       });
       return true;
     } catch (error) {
@@ -155,7 +226,7 @@ export const API = {
       const milestoneData = {
         ...milestone,
         userId,
-        createdAt: serverTimestamp(), // Undefined value, investigate why
+        createdAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "milestones"), milestoneData);
@@ -171,8 +242,8 @@ export const API = {
       const milestoneRef = doc(db, "milestones", milestoneId);
       await updateDoc(milestoneRef, {
         completed: true,
-        completedAt: serverTimestamp(), // Undefined value, investigate why
-        updatedAt: serverTimestamp(), // Undefined value, investigate why
+        completedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       return true;
     } catch (error) {
@@ -183,7 +254,7 @@ export const API = {
 
   deleteMilestone: async (milestoneId) => {
     try {
-      await deleteDoc(doc(db, "milestones", milestoneId)); // Undefined value, investigate why
+      await deleteDoc(doc(db, "milestones", milestoneId));
       return true;
     } catch (error) {
       console.error("Error deleting milestone:", error);

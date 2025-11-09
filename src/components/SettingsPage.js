@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,10 @@ import {
   Switch,
   Modal,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import wifiService from '../services/wifiService';
 // Firebase disabled for UI testing
 // import { signOut } from 'firebase/auth';
 // import { auth } from '../firebase/config';
@@ -36,6 +38,97 @@ export default function SettingsPage() {
   });
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Watch connection state (WiFi)
+  const [watchConnected, setWatchConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [watchData, setWatchData] = useState(null);
+  const [connectionError, setConnectionError] = useState(null);
+  const [esp32IP, setESP32IP] = useState('192.168.1.100');
+
+  useEffect(() => {
+    // Check initial connection status
+    setWatchConnected(wifiService.getConnectionStatus());
+
+    // Set up event listeners
+    wifiService.addEventListener('onConnectionChange', handleConnectionChange);
+    wifiService.addEventListener('onDataReceived', handleDataReceived);
+    wifiService.addEventListener('onError', handleWiFiError);
+
+    return () => {
+      wifiService.removeEventListener('onConnectionChange', handleConnectionChange);
+      wifiService.removeEventListener('onDataReceived', handleDataReceived);
+      wifiService.removeEventListener('onError', handleWiFiError);
+    };
+  }, []);
+
+  const handleConnectionChange = (connected) => {
+    setWatchConnected(connected);
+    if (connected) {
+      setConnectionError(null);
+      Alert.alert('Success', 'ESP32 smartwatch connected via WiFi!');
+    } else {
+      Alert.alert('Disconnected', 'ESP32 smartwatch disconnected');
+    }
+  };
+
+  const handleDataReceived = (data) => {
+    setWatchData(data);
+  };
+
+  const handleWiFiError = (error) => {
+    setConnectionError(error.message);
+    setIsConnecting(false);
+  };
+
+  const handleConnectWatch = async () => {
+    setIsConnecting(true);
+    setConnectionError(null);
+    
+    try {
+      // Set ESP32 IP address
+      wifiService.setESP32Address(esp32IP);
+      
+      // Test connection
+      const connected = await wifiService.testConnection();
+      
+      if (connected) {
+        // Start polling for data every 5 seconds
+        wifiService.startPolling(5000);
+        Alert.alert('Success', `Connected to ESP32 at ${esp32IP}`);
+      } else {
+        Alert.alert('Error', 'Failed to connect. Check IP address and ensure ESP32 is on same WiFi network.');
+      }
+    } catch (error) {
+      setConnectionError(error.message);
+      Alert.alert('Error', error.message);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnectWatch = async () => {
+    try {
+      await wifiService.disconnect();
+      setWatchData(null);
+      Alert.alert('Disconnected', 'ESP32 smartwatch disconnected');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to disconnect: ' + error.message);
+    }
+  };
+
+  const handleSyncTime = async () => {
+    try {
+      const success = await wifiService.syncTime();
+      if (success) {
+        Alert.alert('Success', 'Time synced to watch');
+      } else {
+        Alert.alert('Error', 'Failed to sync time');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to sync time: ' + error.message);
+    }
+  };
 
   const updateSetting = (key, value) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -77,6 +170,128 @@ export default function SettingsPage() {
           <Text style={styles.title}>Settings</Text>
           <Text style={styles.subtitle}>
             Customise your experience and preferences
+          </Text>
+        </View>
+
+        {/* Smartwatch Connection */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="watch" size={24} color="#22c55e" />
+            <Text style={styles.sectionTitle}>ESP32 Smartwatch</Text>
+          </View>
+
+          {/* Connection Status */}
+          <View style={styles.statusContainer}>
+            <View style={styles.statusRow}>
+              <View style={[
+                styles.statusDot,
+                { backgroundColor: watchConnected ? '#22c55e' : '#ef4444' }
+              ]} />
+              <Text style={styles.statusText}>
+                {watchConnected ? 'Connected' : 'Disconnected'}
+              </Text>
+            </View>
+            {watchConnected && watchData && (
+              <Text style={styles.statusSubtext}>
+                Last update: {watchData.lastUpdate?.toLocaleTimeString() || 'N/A'}
+              </Text>
+            )}
+          </View>
+
+          {/* Connection Error */}
+          {connectionError && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={16} color="#ef4444" />
+              <Text style={styles.errorText}>{connectionError}</Text>
+            </View>
+          )}
+
+          {/* IP Address Input */}
+          {!watchConnected && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>ESP32 IP Address</Text>
+              <TextInput
+                style={styles.input}
+                value={esp32IP}
+                onChangeText={setESP32IP}
+                placeholder="192.168.1.100"
+                placeholderTextColor="#9ca3af"
+                keyboardType="numeric"
+              />
+              <Text style={styles.inputHint}>
+                Find this IP in ESP32 Serial Monitor after uploading code
+              </Text>
+            </View>
+          )}
+
+          {/* Watch Data Display */}
+          {watchConnected && watchData && (
+            <View style={styles.watchDataContainer}>
+              <View style={styles.watchDataItem}>
+                <Ionicons name="footsteps" size={20} color="#3b82f6" />
+                <Text style={styles.watchDataLabel}>Steps</Text>
+                <Text style={styles.watchDataValue}>{watchData.steps || 0}</Text>
+              </View>
+              <View style={styles.watchDataItem}>
+                <Ionicons name="heart" size={20} color="#ef4444" />
+                <Text style={styles.watchDataLabel}>Heart Rate</Text>
+                <Text style={styles.watchDataValue}>
+                  {watchData.heartRate || 0} BPM
+                </Text>
+              </View>
+              <View style={styles.watchDataItem}>
+                <Ionicons name="battery-half" size={20} color="#22c55e" />
+                <Text style={styles.watchDataLabel}>Battery</Text>
+                <Text style={styles.watchDataValue}>
+                  {watchData.battery || 100}%
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Connection Buttons */}
+          <View style={styles.watchButtonsContainer}>
+            {!watchConnected ? (
+              <TouchableOpacity
+                style={[styles.watchButton, styles.connectButton]}
+                onPress={handleConnectWatch}
+                disabled={isConnecting}
+              >
+                {isConnecting ? (
+                  <>
+                    <ActivityIndicator size="small" color="#ffffff" />
+                    <Text style={styles.watchButtonText}>Scanning...</Text>
+                  </>
+                ) : (
+                  <>
+                    <Ionicons name="bluetooth" size={20} color="#ffffff" />
+                    <Text style={styles.watchButtonText}>Connect Watch</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={[styles.watchButton, styles.syncButton]}
+                  onPress={handleSyncTime}
+                >
+                  <Ionicons name="time" size={20} color="#ffffff" />
+                  <Text style={styles.watchButtonText}>Sync Time</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.watchButton, styles.disconnectButton]}
+                  onPress={handleDisconnectWatch}
+                >
+                  <Ionicons name="close-circle" size={20} color="#ffffff" />
+                  <Text style={styles.watchButtonText}>Disconnect</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+
+          <Text style={styles.watchDescription}>
+            Connect your ESP32-S3 smartwatch to sync real-time health data including
+            steps, heart rate, and battery level.
           </Text>
         </View>
 
@@ -291,6 +506,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
+  inputHint: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
   toggleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -417,5 +638,99 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  // Watch Connection Styles
+  statusContainer: {
+    marginBottom: 16,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  statusSubtext: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginLeft: 20,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fee2e2',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#dc2626',
+    flex: 1,
+  },
+  watchDataContainer: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  watchDataItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 8,
+  },
+  watchDataLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  watchDataValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  watchButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  watchButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  connectButton: {
+    backgroundColor: '#3b82f6',
+  },
+  syncButton: {
+    backgroundColor: '#22c55e',
+  },
+  disconnectButton: {
+    backgroundColor: '#ef4444',
+  },
+  watchButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  watchDescription: {
+    fontSize: 12,
+    color: '#6b7280',
+    lineHeight: 18,
   },
 });
