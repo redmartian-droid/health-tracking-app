@@ -1,30 +1,130 @@
-import { db, auth } from "../firebase/config";
+// services/api.js
+import { db } from "../firebase/config";
 import {
   collection,
   addDoc,
+  setDoc,
   updateDoc,
   doc,
   getDocs,
+  getDoc,
   query,
   where,
-  serverTimestamp, // Undefined value were due to missing import
-  deleteDoc, // Undefined value were due to missing import
+  serverTimestamp,
+  deleteDoc,
 } from "firebase/firestore";
 
 export const API = {
-  // These would still be mock functions for now until we plug in the arduino or ESP32 data
+  // Profile Management
+
+  createProfile: async (profileData) => {
+    try {
+      const profileWithTimestamp = {
+        ...profileData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      // If profileData has an id, use it as the document ID
+      if (profileData.id) {
+        const profileRef = doc(db, "profiles", profileData.id);
+        await setDoc(profileRef, profileWithTimestamp);
+        return { id: profileData.id, ...profileWithTimestamp };
+      } else {
+        // Otherwise let Firestore generate an ID
+        const docRef = await addDoc(
+          collection(db, "profiles"),
+          profileWithTimestamp
+        );
+        return { id: docRef.id, ...profileWithTimestamp };
+      }
+    } catch (error) {
+      console.error("Error creating profile:", error);
+      throw error;
+    }
+  },
+
+  getProfile: async (profileId) => {
+    try {
+      const docSnap = await getDoc(doc(db, "profiles", profileId));
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting profile:", error);
+      throw error;
+    }
+  },
+
+  updateProfile: async (profileId, updates) => {
+    try {
+      const profileRef = doc(db, "profiles", profileId);
+      await updateDoc(profileRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  },
+
+  deleteProfile: async (profileId) => {
+    try {
+      // First, delete all associated data
+      await API.deleteAllProfileData(profileId);
+
+      // Then delete the profile
+      await deleteDoc(doc(db, "profiles", profileId));
+      return true;
+    } catch (error) {
+      console.error("Error deleting profile:", error);
+      throw error;
+    }
+  },
+
+  deleteAllProfileData: async (profileId) => {
+    try {
+      // Delete all medicines for this profile
+      const medicinesQuery = query(
+        collection(db, "medicines"),
+        where("profileId", "==", profileId)
+      );
+      const medicinesSnapshot = await getDocs(medicinesQuery);
+      const medicineDeletes = medicinesSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      );
+
+      // Delete all milestones for this profile
+      const milestonesQuery = query(
+        collection(db, "milestones"),
+        where("profileId", "==", profileId)
+      );
+      const milestonesSnapshot = await getDocs(milestonesQuery);
+      const milestoneDeletes = milestonesSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      );
+
+      await Promise.all([...medicineDeletes, ...milestoneDeletes]);
+      return true;
+    } catch (error) {
+      console.error("Error deleting profile data:", error);
+      throw error;
+    }
+  },
+
+  // Mock sensor data functions
   getHeartRate: () => Promise.resolve(Math.floor(Math.random() * 40) + 60),
   getSteps: () => Promise.resolve(Math.floor(Math.random() * 8000) + 2000),
 
-  // Fetch medicines from Firestore and handle adding/updating for medicines
-  getMedicines: async () => {
+  // Medicine Management
+  getMedicines: async (profileId) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-
       const q = query(
         collection(db, "medicines"),
-        where("userId", "==", userId)
+        where("profileId", "==", profileId)
       );
       const snapshot = await getDocs(q);
       return snapshot.docs.map((doc) => ({
@@ -37,7 +137,7 @@ export const API = {
     }
   },
 
-  updateMedicine: async (medicineId, time, taken) => {
+  updateMedicine: async (profileId, medicineId, time, taken) => {
     try {
       const medicineRef = doc(db, "medicines", medicineId);
       await updateDoc(medicineRef, {
@@ -51,15 +151,13 @@ export const API = {
     }
   },
 
-  addMedicine: async (medicine) => {
+  addMedicine: async (profileId, medicine) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-
       const medicineData = {
         ...medicine,
-        userId,
-        createdAt: serverTimestamp(), // Undefined value, investigate why
+        profileId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "medicines"), medicineData);
@@ -70,9 +168,9 @@ export const API = {
     }
   },
 
-  deleteMedicine: async (medicineId) => {
+  deleteMedicine: async (profileId, medicineId) => {
     try {
-      await deleteDoc(doc(db, "medicines", medicineId)); // Undefined value, investigate why
+      await deleteDoc(doc(db, "medicines", medicineId));
       return true;
     } catch (error) {
       console.error("Error deleting medicine:", error);
@@ -80,25 +178,17 @@ export const API = {
     }
   },
 
-  // Fetch milestones from Firestore and handle adding/updating for milestones
-  getMilestones: async () => {
+  // Milestone Management
+  getMilestones: async (profileId) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-
       const q = query(
         collection(db, "milestones"),
-        where("userId", "==", userId)
+        where("profileId", "==", profileId)
       );
       const snapshot = await getDocs(q);
 
-      if (snapshot.isEmpty) {
-        return await API.createDefaultMilestones();
-      }
-
-      // If no milestones exist, create default ones
-      if (snapshot.isEmpty) {
-        return await API.createDefaultMilestones();
+      if (snapshot.empty) {
+        return await API.createDefaultMilestones(profileId);
       }
 
       return snapshot.docs.map((doc) => ({
@@ -111,19 +201,64 @@ export const API = {
     }
   },
 
-  createDefaultMilestones: async () => {
+  createDefaultMilestones: async (profileId) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-      // Mock data in case user is not signed in and also for testing. NB: remember to come up with a better default milestone strategy once we have real users
       const defaultMilestones = [
-        // We can add default milestones here, some example ones have already been added to firestore. There is a slight lag between the default amount in the website and the amount retrieved. Find fix if possible or force longer loading state.
+        {
+          title: "First 5K Steps",
+          description: "Walk 5,000 steps in a day",
+          target: 5000,
+          current: 0,
+          completed: false,
+          type: "steps",
+          reward: 50,
+          profileId: profileId,
+        },
+        {
+          title: "Healthy Heart Week",
+          description: "Maintain healthy heart rate for 7 days",
+          target: 7,
+          current: 0,
+          completed: false,
+          type: "heart",
+          reward: 100,
+          profileId: profileId,
+        },
+        {
+          title: "Medicine Compliance",
+          description: "Take all medicines on time for 14 days",
+          target: 14,
+          current: 0,
+          completed: false,
+          type: "medicine",
+          reward: 75,
+          profileId: profileId,
+        },
+        {
+          title: "10K Steps Champion",
+          description: "Walk 10,000 steps in a day",
+          target: 10000,
+          current: 0,
+          completed: false,
+          type: "steps",
+          reward: 150,
+          profileId: profileId,
+        },
       ];
 
       const createdMilestones = [];
       for (const milestone of defaultMilestones) {
-        const docRef = await addDoc(collection(db, "milestones"), milestone);
-        createdMilestones.push({ id: docRef.id, ...milestone });
+        const milestoneData = {
+          ...milestone,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+
+        const docRef = await addDoc(
+          collection(db, "milestones"),
+          milestoneData
+        );
+        createdMilestones.push({ id: docRef.id, ...milestoneData });
       }
 
       return createdMilestones;
@@ -133,12 +268,12 @@ export const API = {
     }
   },
 
-  updateMilestone: async (milestoneId, updates) => {
+  updateMilestone: async (profileId, milestoneId, updates) => {
     try {
       const milestoneRef = doc(db, "milestones", milestoneId);
       await updateDoc(milestoneRef, {
         ...updates,
-        updatedAt: serverTimestamp(), // Undefined value, investigate why
+        updatedAt: serverTimestamp(),
       });
       return true;
     } catch (error) {
@@ -147,15 +282,13 @@ export const API = {
     }
   },
 
-  addMilestone: async (milestone) => {
+  addMilestone: async (profileId, milestone) => {
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) throw new Error("User not authenticated");
-
       const milestoneData = {
         ...milestone,
-        userId,
-        createdAt: serverTimestamp(), // Undefined value, investigate why
+        profileId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "milestones"), milestoneData);
@@ -166,13 +299,13 @@ export const API = {
     }
   },
 
-  completeMilestone: async (milestoneId) => {
+  completeMilestone: async (profileId, milestoneId) => {
     try {
       const milestoneRef = doc(db, "milestones", milestoneId);
       await updateDoc(milestoneRef, {
         completed: true,
-        completedAt: serverTimestamp(), // Undefined value, investigate why
-        updatedAt: serverTimestamp(), // Undefined value, investigate why
+        completedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       return true;
     } catch (error) {
@@ -181,9 +314,9 @@ export const API = {
     }
   },
 
-  deleteMilestone: async (milestoneId) => {
+  deleteMilestone: async (profileId, milestoneId) => {
     try {
-      await deleteDoc(doc(db, "milestones", milestoneId)); // Undefined value, investigate why
+      await deleteDoc(doc(db, "milestones", milestoneId));
       return true;
     } catch (error) {
       console.error("Error deleting milestone:", error);

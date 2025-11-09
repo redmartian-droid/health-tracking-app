@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Activity, Pill, Check, Heart } from "lucide-react";
-
-import { Heart as HeartBeat } from "lucide-react";
 
 import MetricCard from "./MetricCard";
 import HeartRateMetricCard from "./HeartRateMetricCard";

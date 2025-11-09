@@ -48,7 +48,7 @@ export default function BottomNavigation({ currentPage, setCurrentPage }) {
               {currentPage === id ? (
                 <ActiveIcon className="w-6 h-6 mb-1" />
               ) : (
-                <Icon className="w-6 h-6 mb-1" />
+                <Icon className="w-6 h-6 mb-1 " />
               )}
               <span className="hidden sm:block">{label}</span>
             </button>

@@ -13,20 +13,20 @@ export default function MilestonesPage({ milestones, totalPoints }) {
       <h2 className="text-2xl font-bold mb-6">Milestones & Progress</h2>
 
       {/* Progress Overview */}
-      <div className="bg-gray-100 rounded-lg p-6 mb-8">
+      <div className="bg-green-100 p-6 rounded-lg border border-green-300 mb-8">
         <div className="text-center">
           <div className="flex justify-center mb-4"></div>
           <h3 className="text-xl font-bold mb-4">Milestone Progress</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="bg-gray-200 rounded-lg p-4">
+            <div className="bg-green-300 rounded-lg p-4">
               <p className="text-2xl font-bold">{completedCount}</p>
               <p className="text-sm">Completed</p>
             </div>
-            <div className="bg-gray-200 rounded-lg p-4">
+            <div className="bg-green-300 rounded-lg p-4">
               <p className="text-2xl font-bold">{inProgressCount}</p>
               <p className="text-sm">In Progress</p>
             </div>
-            <div className="bg-gray-200 rounded-lg p-4">
+            <div className="bg-green-300 rounded-lg p-4">
               <p className="text-2xl font-bold">{nearCompletionCount}</p>
               <p className="text-sm">Almost There</p>
             </div>

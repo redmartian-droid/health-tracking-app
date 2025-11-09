@@ -13,17 +13,17 @@ export default function RewardsPage({ milestones, totalPoints }) {
       <h2 className="text-2xl font-bold mb-6">Rewards & Points</h2>
 
       {/* Points Summary */}
-      <div className="bg-gray-100 rounded-lg p-6 mb-8">
+      <div className="bg-green-100 p-6 rounded-lg border border-green-300 mb-8">
         <div className="text-center">
           <div className="flex justify-center mb-4"></div>
           <h3 className="text-xl font-bold mb-2">Total Points Earned</h3>
           <p className="text-4xl font-bold mb-4">{totalPoints}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-            <div className="bg-gray-200 rounded-lg p-4">
+            <div className="bg-green-300 rounded-lg p-4">
               <p className="text-2xl font-bold">{completedMilestones.length}</p>
               <p className="text-sm">Rewards Unlocked</p>
             </div>
-            <div className="bg-gray-200 rounded-lg p-4">
+            <div className="bg-green-300 rounded-lg p-4">
               <p className="text-2xl font-bold">{totalRewardsEarned}</p>
               <p className="text-sm">Bonus Points Earned</p>
             </div>

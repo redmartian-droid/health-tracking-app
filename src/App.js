@@ -1,11 +1,5 @@
-// First, install react-router-dom:
-// npm install react-router-dom
-// npm install firebase
-// npm install react-firebase-hooks
-
-// import necessary modules and components
-
-import React, { useState, useEffect } from "react";
+/* eslint-disable no-undef */
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -14,91 +8,96 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "./firebase/config";
-import SignIn from "./components/SignIn";
-import SignUp from "./components/SignUp";
-
 import "./App.css";
 import Navigation from "./components/Navbar";
 import BottomNavigation from "./components/BottomNavbar";
 import Dashboard from "./components/Dashboard";
+import AdminDashboard from "./components/AdminDashboard";
 import HeartRatePage from "./components/HeartRatePage";
 import StepsPage from "./components/StepsPage";
 import MedicinePage from "./components/MedicinePage";
 import MilestonesPage from "./components/MilestonesPage";
 import RewardsPage from "./components/RewardPage";
 import SettingsPage from "./components/SettingsPage";
+import ProfileSelection from "./components/ProfileSelection";
 import { API } from "./services/api";
 
 import { LoaderCircle } from "lucide-react";
 
-// this specific component handles routing so no need for dedicated routing in each component
-// AuthWrapper component checks auth state and conditionally renders routes
 function App() {
   return (
     <Router>
-      <AuthWrapper />
+      <ProfileWrapper />
     </Router>
   );
 }
 
-function AuthWrapper() {
-  const [user, loading, error] = useAuthState(auth);
+function ProfileWrapper() {
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Add this useEffect to load the existing profile
+  useEffect(() => {
+    loadExistingProfile();
+  }, []);
+
+  const loadExistingProfile = async () => {
+    try {
+      // Try to load last used profile from AsyncStorage
+      const storedProfile = await AsyncStorage.getItem("currentProfile");
+      console.log("Stored profile found:", storedProfile);
+
+      if (storedProfile) {
+        const profile = JSON.parse(storedProfile);
+        setSelectedProfile(profile);
+        console.log("Loaded existing profile:", profile);
+      }
+    } catch (error) {
+      console.log("No existing profile found or error loading:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProfileSelect = (profile) => {
+    setSelectedProfile(profile);
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-green-50 text-gray-800">
         <div className="text-center">
-          <LoaderCircle className="animate-spin rounded-full h-32 w-32 text-green-500" />
+          <LoaderCircle className="animate-spin rounded-full h-32 w-32 text-green-500 mx-auto" />
           <p className="mt-4">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
-    console.error("Authentication error:", error);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-green-50 text-red-500">
-        <div className="text-center">
-          <h2 className="text-xl mb-4">Authentication Error</h2>
-          <p>{error.message}</p>
-        </div>
-      </div>
-    );
+  if (!selectedProfile) {
+    return <ProfileSelection onProfileSelect={handleProfileSelect} />;
   }
 
-  if (!user) {
-    return <AuthRoutes />;
-  }
-
-  return <HealthTracker />;
+  return <HealthTracker selectedProfile={selectedProfile} />;
 }
 
-function AuthRoutes() {
-  return (
-    <div className="min-h-screen bg-gray-900">
-      <Routes>
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="*" element={<SignIn />} />
-      </Routes>
-    </div>
-  );
-}
-
-function HealthTracker() {
+function HealthTracker({ selectedProfile }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [isAdminMode, setIsAdminMode] = useState(false);
+
+  useEffect(() => {
+    checkAdminMode();
+  }, [location]);
+
   // Get current page from URL path
   const getCurrentPage = () => {
-    const path = location.pathname.slice(1); // This removes the leading slash, dynamic routing is a bit weird
-    return path || "dashboard"; // Defaults to dashboard
+    const path = location.pathname.slice(1);
+    return path || "dashboard";
   };
 
   const [heartRate, setHeartRate] = useState(72);
-
   const [steps, setSteps] = useState(5420);
   const [medicines, setMedicines] = useState([]);
   const [milestones, setMilestones] = useState([
@@ -141,19 +140,13 @@ function HealthTracker() {
   ]);
   const [totalPoints, setTotalPoints] = useState(250);
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [hr, st, med, ms] = await Promise.all([
         API.getHeartRate(),
         API.getSteps(),
-        API.getMedicines(),
-        API.getMilestones(),
+        API.getMedicines(selectedProfile.id),
+        API.getMilestones(selectedProfile.id),
       ]);
       setHeartRate(hr);
       setSteps(st);
@@ -162,6 +155,20 @@ function HealthTracker() {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
+  }, [selectedProfile.id]);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const checkAdminMode = async () => {
+    try {
+      setIsAdminMode(false); // Default to false, can be toggled in settings
+    } catch (error) {
+      console.error("Error checking admin mode:", error);
+    }
   };
 
   const toggleMedicine = async (medicineId, time) => {
@@ -169,7 +176,7 @@ function HealthTracker() {
     const newTaken = !medicine.taken[time];
 
     try {
-      await API.updateMedicine(medicineId, time, newTaken);
+      await API.updateMedicine(selectedProfile.id, medicineId, time, newTaken);
       setMedicines(
         medicines.map((m) =>
           m.id === medicineId
@@ -188,7 +195,7 @@ function HealthTracker() {
 
   const addMedicine = async (newMed) => {
     try {
-      const medicine = await API.addMedicine({
+      const medicine = await API.addMedicine(selectedProfile.id, {
         ...newMed,
         taken: newMed.times.reduce(
           (acc, time) => ({ ...acc, [time]: false }),
@@ -203,7 +210,7 @@ function HealthTracker() {
 
   const completeMilestone = async (milestoneId) => {
     try {
-      await API.completeMilestone(milestoneId);
+      await API.completeMilestone(selectedProfile.id, milestoneId);
       setMilestones(
         milestones.map((m) =>
           m.id === milestoneId ? { ...m, completed: true } : m
@@ -222,6 +229,42 @@ function HealthTracker() {
     navigate(`/${page === "dashboard" ? "" : page}`);
   };
 
+  // Show admin dashboard if admin mode is enabled
+  if (isAdminMode) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-16">
+        <Navigation
+          currentPage={getCurrentPage()}
+          setCurrentPage={handleNavigation}
+          totalPoints={totalPoints}
+          isAdmin={true}
+          selectedProfile={selectedProfile}
+        />
+
+        <main className="py-6">
+          <Routes>
+            <Route path="*" element={<AdminDashboard />} />
+            <Route
+              path="/settings"
+              element={
+                <SettingsPage
+                  selectedProfile={selectedProfile}
+                  setIsAdminMode={setIsAdminMode}
+                />
+              }
+            />
+          </Routes>
+        </main>
+
+        <BottomNavigation
+          currentPage={getCurrentPage()}
+          setCurrentPage={handleNavigation}
+          isAdmin={true}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-green-50 pb-16">
       {/* Top Navigation */}
@@ -229,6 +272,7 @@ function HealthTracker() {
         currentPage={getCurrentPage()}
         setCurrentPage={handleNavigation}
         totalPoints={totalPoints}
+        selectedProfile={selectedProfile}
       />
 
       {/* Main Content with Routes */}
@@ -276,7 +320,15 @@ function HealthTracker() {
               <RewardsPage milestones={milestones} totalPoints={totalPoints} />
             }
           />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route
+            path="/settings"
+            element={
+              <SettingsPage
+                selectedProfile={selectedProfile}
+                setIsAdminMode={setIsAdminMode}
+              />
+            }
+          />
         </Routes>
       </main>
 
